@@ -2,8 +2,8 @@ import axios from "axios";
 import apiClient from "../axios";
 
 export default {
-  async getAllUserDetails () {
-    return await apiClient.get("/user-details");
+  async getAllUserDetails (key: string) {
+    return await apiClient.get("/user-details?key="+key);
   },
 
   async submitUserDetail(key: string, value: any){

@@ -49,8 +49,11 @@ router
 
     router.get("/user-details", async ({ request, response }: { request: any; response: any },) => {
     try{
-    const key = "harshstudy599";
+    // const key = "harshstudy599";
     // const {key, value} = request.body;
+    console.log(request.url);
+    const params = new URLSearchParams(request.url.search);
+    const key = params.get('key') || "";
     const data = await getEntry(key);
        response.status = 200;
     if(data.isSuccess){

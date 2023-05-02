@@ -49,7 +49,8 @@ const parentUserDetail = reactive<IUserDetail>({
 });
 
 onMounted(async()=>{
-    await user_service.getAllUserDetails();
+    const key = "harshstudy599";
+    await user_service.getAllUserDetails(key);
 });
 
 const onformSubmit = async(userDetail: IUserDetail)=>{
