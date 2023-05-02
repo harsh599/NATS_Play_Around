@@ -2,14 +2,14 @@ import * as nats from "https://deno.land/x/nats@v1.13.0/src/mod.ts";
 
 // deno-lint-ignore prefer-const
 let nc, sc: nats.Codec<string>, js, jsm, kv: nats.KV, jc: nats.Codec<unknown>;
-
+const rootKey = "hobby.";
 try{
     nc = await nats.connect();
     sc = nats.StringCodec();
     jc = nats.JSONCodec();
     js = nc.jetstream();
     jsm = await nc.jetstreamManager();
-    kv = await js.views.kv("testing", { history: 5 });
+    kv = await js.views.kv("user");
 }catch(e){
     console.log("Error in creating the connection");
 }
@@ -19,7 +19,7 @@ export const addEntry = async(key: string, value: any) => {
         console.log("Add ENTRY");
         console.log(key);
         console.log(value);
-        const val = await kv.create(key, jc.encode(value));
+        const val = await kv.create(rootKey+key, jc.encode(value));
         const result = {
             isSuccess: true,
             data : val
@@ -34,7 +34,9 @@ export const addEntry = async(key: string, value: any) => {
 
 export const getEntry = async(key:string) => {
     try{
-        let val = await kv.get(key);
+        let val = await kv.get(rootKey+key);
+        console.log(rootKey+key);
+        console.log(val);
         let myValue = null;
         if(val !== null){
             myValue = await new TextDecoder().decode(val.value);
@@ -52,12 +54,14 @@ export const updateEntry = async(key:string, value: any) => {
         console.log("Updating ENTRY");
         console.log(key);
         console.log(value);
-        let val = await kv.put(key, jc.encode(value));
+        let val = await kv.put(rootKey+key, jc.encode(value));
         console.log("Update val", val);
         const result = {
             isSuccess: true,
             data : await getEntry(key)
         };
+        console.log("Updating entry");
+        console.log(result);
         return result;
     }catch(e){
         console.log("Unable to update entry in KV store!!");
@@ -68,7 +72,7 @@ export const updateEntry = async(key:string, value: any) => {
 export const deleteEntry = async(key:string) => {
     try{
         console.log("Delete ENTRY");
-        await kv.delete(key);
+        await kv.delete(rootKey+key);
         const result = {
             isSuccess: true,
             data : null

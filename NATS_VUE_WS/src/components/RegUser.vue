@@ -4,22 +4,29 @@
     <div class = "card-body">
       <div class="row m-2">
         <div class="col m-1">
+            <label for="firstName"><strong>First Name </strong> </label>
           <input type="text" class="form-control" placeholder="First name" v-model = "userDetails.firstName">
         </div>
         <div class="col m-1">
+            <label for="firstName"><strong>Last Name </strong> </label>
+
           <input type="text" class="form-control" placeholder="Last name" v-model = "userDetails.lastName">
         </div>
       </div>
       <div class = "row m-2">
         <div class = "col m-1">
-            <select class="custom-select form-control" v-model = "userDetails.gender">
-                <option selected>Gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-            </select>
+            <label for="hobby"><strong>Hobby </strong> </label>
+
+              <select class="custom-select form-control" v-model = "userDetails.choice">
+                        <option value="food">Food</option>
+                        <option value="clothes">Clothing</option>
+                        <option value="travel">Travel</option>
+                        <option value="chill">Binge Watch</option>
+                </select>
         </div>
-             <div class="col m-1">
-                  <input type="text" class="form-control" placeholder="Email" v-model = "userDetails.email">
+        <div class="col m-1">
+              <label for="firstName"><strong>What exactly? </strong> </label>
+              <input type="text" class="form-control" placeholder="Last name" v-model = "userDetails.what">
             </div>
       </div>
     </div>
@@ -31,23 +38,27 @@
 
 <script lang = "ts" setup>
 import { ref, defineEmits } from 'vue';
-import UserDetails from './UserDetails.vue';
 
 const emits = defineEmits(['submitForm']);
 
 export interface IUserDetail{
     firstName: string;
     lastName: string;
-    gender: string;
-    email: string;
+    // gender: string;
+    // email: string;
+    what:string;
+    choice: string;
 }
 let props = defineProps<{
     userDetail: IUserDetail,
-    mutable: true,
-    required:false
+    required:false,
     default: () => {
-        firstName: "",
-        lastName:""
+        firstName: string,
+        lastName:string,
+        // gender:"",
+        // email:"",
+        choice: string,
+        what: string,
     }
 }>();
 

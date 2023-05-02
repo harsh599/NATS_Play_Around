@@ -44,8 +44,8 @@ import { onMounted, reactive } from 'vue';
 const parentUserDetail = reactive<IUserDetail>({
   firstName: "",
   lastName: "",
-  email:"",
-  gender: "",
+  what:"",
+  choice:"",
 });
 
 onMounted(async()=>{
@@ -55,11 +55,11 @@ onMounted(async()=>{
 
 const onformSubmit = async(userDetail: IUserDetail)=>{
   console.log(userDetail);
-  const key = userDetail.email;
+  const key = userDetail.choice;
   const value = userDetail;
-  // await user_service.submitUserDetail(key, value);
+  await user_service.submitUserDetail(key, value);
   // await user_service.updateUserDetail(key,value);
-  await user_service.deleteUserDetail(key);
+  // await user_service.deleteUserDetail(key);
   console.log(value);
 }
 

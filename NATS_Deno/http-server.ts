@@ -24,7 +24,9 @@ router
   try{
     const bodyValue = await request.body().value;
     const {key, value} = bodyValue;
-    const result = await addEntry(key, value);
+    // const result = await addEntry(key, value);
+    const result = await updateEntry(key, value);
+
       response.status = 200;
     if(result.isSuccess){
        response.body = {
