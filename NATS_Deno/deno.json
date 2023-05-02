@@ -1,0 +1,10 @@
+{
+  "start": {
+      "cmd": "deno run http-server.ts",
+      "desc": "Start http_server in watch mode",
+      "allow": ["env", "net"],
+      "env": {
+        "PORT": "2525"
+      }
+    }
+}
