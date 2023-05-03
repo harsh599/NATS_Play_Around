@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { connect, StringCodec } from "nats.ws";
+import { connect, StringCodec, JSONCodec } from "nats.ws";
 import { onMounted, reactive, ref } from 'vue';
 const messages = ref<any>([]);
 const sc = StringCodec();
@@ -42,14 +42,6 @@ const incCounter = ()=>{
 onMounted(async()=>{
     try{
         nc.value = await connect({ servers: "ws://localhost:8080" });
-        
-        // sub.value = nc.value.subscribe("hello");
-        // console.log(sub.value);
-        // for await (const m of sub) {
-        //     // const message = sc.decode(m.data);
-        //     console.log(m.data);
-        //     messages.value.push(`[${sub.value.getProcessed()}]: ${m.data}`);
-        // }
         nc.value.publish("hello", sc.encode("world"));
         nc.value.publish("hello", sc.encode("again"));
 
@@ -62,18 +54,26 @@ onMounted(async()=>{
             }
             console.log("subscription closed");
         })();
-        //  nc.value.subscribe("count", (msg) => {
-        //     console.log("HEL");
-        //     const countValue = parseInt(msg.data);
-        //     if (!isNaN(countValue)) {
-        //         count.value = countValue;
-        //     }
-        //     console.log('COUNT');
-        // });
         console.log("AFTER SUBSCRIPTION");
         incCounter();
-        //      nc.value.publish("hello", "world");
-        // nc.value.publish("hello", "again");
+
+
+        const jc = JSONCodec();
+        const js = nc.value.jetstream();
+        const jsm = await nc.value.jetstreamManager();
+        const kv = await js.views.kv("user", { history: 5 });
+
+        const watch = await kv.watch({key: "hobby.food.*"});
+        (async () => {
+            for await (const e of watch) {
+                // do something with the change
+                console.log(
+                    `watch: ${e.key}: ${e.operation} ${e.value ? sc.decode(e.value) : ""}`,
+                );
+            }
+        })().then();
+
+
     }catch(e){
         console.error(e);
     }finally{

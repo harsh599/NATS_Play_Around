@@ -55,7 +55,8 @@ onMounted(async()=>{
 
 const onformSubmit = async(userDetail: IUserDetail)=>{
   console.log(userDetail);
-  const key = userDetail.firstName;
+  let key = userDetail.choice;
+  key = key + "." + userDetail.firstName;
   const value = userDetail;
   await user_service.submitUserDetail(key, value);
   // await user_service.updateUserDetail(key,value);
