@@ -10,9 +10,19 @@ try{
     js = nc.jetstream();
     jsm = await nc.jetstreamManager();
     kv = await js.views.kv("user");
-}catch(e){
-    console.log("Error in creating the connection");
-}
+    const watch = await kv.watch();
+    (async () => {
+    for await (const e of watch) {
+        // do something with the change
+        console.log(
+        `watch: ${e.key}: ${e.operation} ${e.value ? sc.decode(e.value) : ""}`,
+        );
+    }
+    })().then();
+
+    }catch(e){
+        console.log("Error in creating the connection");
+    }
 
 export const addEntry = async(key: string, value: any) => {
     try{

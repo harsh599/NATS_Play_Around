@@ -6,7 +6,6 @@ const app = new Application();
 
 const router = new Router();
 
-// Set CORS headers for all requests
 app.use(async (ctx, next) => {
   ctx.response.headers.set("Access-Control-Allow-Origin", "*");
   ctx.response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
