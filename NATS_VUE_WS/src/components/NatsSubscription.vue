@@ -56,12 +56,23 @@ const incCounter = ()=>{
     nc.value.publish("count", sc.encode(count.value+""));
 }
 
+const subCount = () =>{
+    sub.value = nc.value.subscribe("count");
+    console.log(sub.value);
+    (async () => {
+        for await (const m of sub.value) {
+            console.log(`[${sub.value.getProcessed()}]: ${sc.decode(m.data)}`);
+        }
+        console.log("subscription closed");
+    })();
+}
+
+
 const deleteEntry = async(val : any)=>{
     console.log("Delete");
     console.log(val);
     const key = val.choice + "." + val.firstName;
-  await user_service.deleteUserDetail(key);
-
+    await user_service.deleteUserDetail(key);
 }
 
 const filterChange = async(filterParam: string) => {
@@ -95,11 +106,32 @@ onMounted(async()=>{
     try{
         nc.value = await connect({ servers: "ws://localhost:8080" });
             filterChange("all");
-
+            subCount();
     }catch(e){
         console.error(e);
     }
 });
+
+const requestReply = () => {
+    // set up a subscription to process the request
+    const sc = StringCodec();
+    nc.value.subscribe("time", {
+        callback: (_err, msg) => {
+            msg.respond(sc.encode(new Date().toLocaleTimeString()));
+        },
+    });
+
+    // create a subscription subject that the responding send replies to
+    const inbox = createInbox();
+    const sub = nc.value.subscribe(inbox, {
+        max: 1,
+        callback: (_err, msg) => {
+            t.log(`the time is ${sc.decode(msg.data)}`);
+        },
+    });
+
+    nc.publish("time", Empty, { reply: inbox });
+}
 
 onUnmounted(async()=>{
     await sub.value.drain();
