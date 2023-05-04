@@ -1,25 +1,53 @@
 <template>
-    <div>
-        <h1>Nats Subscription</h1>
-    </div>
-    <div v-if = "messages.length > 0">
-        <p v-for="(message, index) in messages" :key="index">{{ message }}</p>
+    <div class="d-flex">
+      <h1>All Users</h1>
+      <div>
+        <label for="filter"><strong>Filter By:</strong></label>
+        <select class="custom-select form-control" @change="filterChange(filterValue)" v-model="filterValue">
+          <option value="all">All</option>
+          <option value="food">Food</option>
+          <option value="clothes">Clothing</option>
+          <option value="travel">Travel</option>
+          <option value="chill">Binge Watch</option>
+        </select>
+      </div>
     </div>
 
+    <table class="table table-striped">
+          <thead>
+            <tr>
+              <th scope="col">First</th>
+              <th scope="col">Last</th>
+              <th scope="col">Choice</th>
+              <th scope="col">Handle</th>
+              <th scope="col"></th>
+
+            </tr>
+          </thead>
+          <tbody v-if = "watchValue.length > 0">
+            <tr v-for="(val, index) in watchValue" :key="index">
+              <th scope="row">{{ val.firstName }}</th>
+              <td>{{ val.lastName }}</td>
+              <td>{{ val.choice }}</td>
+              <td>{{ val.what }}</td>
+              <td ><p @click = "deleteEntry(val)" style="color:red">Del </p></td>
+            </tr>
+          </tbody>
+        </table>
+
     <button class = "btn btn-primary" @click = incCounter>Counter++ {{ count }}</button>
-    <!-- <button class = "btn btn-danger" @click = checkSubscription>Check Subscription</button> -->
 
 </template>
 
 <script setup lang="ts">
+import user_service from "@/services/user_service";
 import { connect, StringCodec, JSONCodec } from "nats.ws";
-import { onMounted, reactive, ref } from 'vue';
-const messages = ref<any>([]);
+import { onMounted, onUnmounted, reactive, ref } from 'vue';
 const sc = StringCodec();
 const nc = ref<any>();
 const sub = ref<any>();
-const countSub = ref<any>();
-
+const watchValue = ref<any>([]);
+const filterValue = ref<string>("all");
 
 const count = ref<number>(0);
 
@@ -28,56 +56,61 @@ const incCounter = ()=>{
     nc.value.publish("count", sc.encode(count.value+""));
 }
 
-// const checkSubscription = () => {
-//      nc.value.subscribe("count", (msg) => {
-//         console.log("HEL");
-//         const countValue = parseInt(msg.data);
-//         if (!isNaN(countValue)) {
-//             count.value = countValue;
-//         }
-//         console.log('COUNT');
-//     });
-// }
+const deleteEntry = async(val : any)=>{
+    console.log("Delete");
+    console.log(val);
+    const key = val.choice + "." + val.firstName;
+  await user_service.deleteUserDetail(key);
 
-onMounted(async()=>{
-    try{
-        nc.value = await connect({ servers: "ws://localhost:8080" });
-        nc.value.publish("hello", sc.encode("world"));
-        nc.value.publish("hello", sc.encode("again"));
+}
 
-        console.log("BEFORE SUBSCRIPTION");
-         sub.value = nc.value.subscribe("count");
-        console.log(sub.value);
-       (async () => {
-            for await (const m of sub.value) {
-                console.log(`[${sub.value.getProcessed()}]: ${sc.decode(m.data)}`);
-            }
-            console.log("subscription closed");
-        })();
-        console.log("AFTER SUBSCRIPTION");
-        incCounter();
-
-
-        const jc = JSONCodec();
-        const js = nc.value.jetstream();
-        const jsm = await nc.value.jetstreamManager();
-        const kv = await js.views.kv("user", { history: 5 });
-
-        const watch = await kv.watch({key: "hobby.food.*"});
-        (async () => {
-            for await (const e of watch) {
-                // do something with the change
+const filterChange = async(filterParam: string) => {
+    console.log(filterParam);
+    watchValue.value = [];
+    const js = nc.value.jetstream();
+    const kv = await js.views.kv("user",{history: 1});
+    let watchParam = "hobby." + filterParam + ".*";
+    if(filterParam == "all"){
+        watchParam = "hobby.>";
+    }
+    const watch = await kv.watch({ key: watchParam });
+    (async () => {
+        for await (const e of watch) {
+            watch.value = [];
+            console.log("VALUE", e);
+            console.log(sc.decode(e.value));
+            if(e.value && (e.operation != "DEL" && e.operation != "PURGE")){
+                console.log(e.operation);
+                watchValue.value.push(JSON.parse(sc.decode(e.value)));
                 console.log(
                     `watch: ${e.key}: ${e.operation} ${e.value ? sc.decode(e.value) : ""}`,
                 );
             }
-        })().then();
+           
+        }
+    })().then();
+}
 
+onMounted(async()=>{
+    try{
+        nc.value = await connect({ servers: "ws://localhost:8080" });
+            filterChange("all");
 
     }catch(e){
         console.error(e);
-    }finally{
-        // await nc.value.drain();
     }
 });
+
+onUnmounted(async()=>{
+    await sub.value.drain();
+});
 </script>
+
+<style scoped>
+.d-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+</style>
