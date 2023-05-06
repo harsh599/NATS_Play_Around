@@ -59,8 +59,6 @@ const emits = defineEmits(['submitForm'])
 export interface IUserDetail {
   firstName: string
   lastName: string
-  // gender: string;
-  // email: string;
   what: string
   choice: string
 }
@@ -70,8 +68,6 @@ let props = defineProps<{
   default: () => {
     firstName: string
     lastName: string
-    // gender:"",
-    // email:"",
     choice: string
     what: string
   }

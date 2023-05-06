@@ -1,7 +1,6 @@
 import * as nats from "https://deno.land/x/nats@v1.13.0/src/mod.ts";
 import { User } from "./user.ts";
-import * as m from "protobufjs/minimal.js";
-import Writer from "protobufjs/minimal.js";
+import pb from "protobufjs/minimal.js";
 
 // deno-lint-ignore prefer-const
 let nc, sc: nats.Codec<string>, js, jsm, kv: nats.KV, jc: nats.Codec<unknown>;
@@ -58,7 +57,7 @@ export const updateEntry = async (key: string, value: any) => {
       choice: value.choice,
       what: value.what,
     };
-    const write = Writer.Writer.create();
+    const write = pb.Writer.create();
     const encodedUser = User.encode(newUser, write).finish();
     let val = await kv.put(rootKey + key, encodedUser);
     const result = {
