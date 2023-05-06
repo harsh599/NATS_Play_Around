@@ -43,8 +43,11 @@
 
 <script setup lang="ts">
 import user_service from '@/services/user_service'
-import { connect, StringCodec, JSONCodec, createInbox, Empty } from 'nats.ws'
-import { onMounted, onUnmounted, reactive, ref } from 'vue'
+import { User } from '@/user'
+import { connect, StringCodec, createInbox } from 'nats.ws'
+import { onMounted, onUnmounted, ref } from 'vue'
+import pb from 'protobufjs/minimal.js'
+
 const sc = StringCodec()
 const nc = ref<any>()
 const sub = ref<any>()
@@ -61,22 +64,18 @@ const count = ref<number>(0)
 const incCounter = () => {
   // count.value += 1;
   // nc.value.publish("count", sc.encode(count.value+""));
-  console.log('Coco')
   nc.value.publish('time', sc.encode('1234'), { reply: inbox })
 }
 
 const deleteEntry = async (val: any) => {
-  console.log('Delete')
-  console.log(val)
   const key = val.choice + '.' + val.firstName
   await user_service.deleteUserDetail(key)
 }
 
 const filterChange = async (filterParam: string) => {
-  console.log(filterParam)
   watchValue.value = []
   const js = nc.value.jetstream()
-  const kv = await js.views.kv('user', { history: 1 })
+  const kv = await js.views.kv('ast', { history: 1 })
   let watchParam = 'hobby.' + filterParam + '.*'
   if (filterParam == 'all') {
     watchParam = 'hobby.>'
@@ -88,8 +87,8 @@ const filterChange = async (filterParam: string) => {
       console.log('VALUE', e)
       console.log(sc.decode(e.value))
       if (e.value && e.operation != 'DEL' && e.operation != 'PURGE') {
-        console.log(e.operation)
-        watchValue.value.push(JSON.parse(sc.decode(e.value)))
+        const decodeResult = User.decode(pb.Reader.create(e.value))
+        watchValue.value.push(decodeResult)
         console.log(`watch: ${e.key}: ${e.operation} ${e.value ? sc.decode(e.value) : ''}`)
       }
     }
@@ -109,7 +108,6 @@ onMounted(async () => {
 
 const subCount = () => {
   sub.value = nc.value.subscribe('count')
-  console.log(sub.value)
   ;(async () => {
     for await (const m of sub.value) {
       console.log(`[${sub.value.getProcessed()}]: ${sc.decode(m.data)}`)
@@ -121,9 +119,7 @@ const subCount = () => {
 const requestReply = async () => {
   reqReplySub.value = nc.value.subscribe('time')
   ;(async () => {
-    console.log('Time Subject Subscribed')
     for await (const m of reqReplySub.value) {
-      // console.log(m);
       m.respond(m.data)
       // console.log(`[${reqReplySub.value.getProcessed()}]: ${sc.decode(m.data)}`);
     }
@@ -131,17 +127,15 @@ const requestReply = async () => {
 
   inboxSub.value = nc.value.subscribe(inbox)
   ;(async () => {
-    console.log('Time Subject Reply Received')
     for await (const m of inboxSub.value) {
       console.log('Received:')
       console.log(`[${inboxSub.value.getProcessed()}]: ${sc.decode(m.data)}`)
     }
-    console.log('subscription closed')
   })()
 }
 
 onUnmounted(async () => {
-  await sub.value.drain()
+  await sub.value?.drain()
 })
 </script>
 

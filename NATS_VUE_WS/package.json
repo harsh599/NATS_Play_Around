@@ -12,6 +12,8 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "protobufjs": "^7.2.3",
+    "ts-proto": "^1.146.0",
     "vue": "^3.2.47",
     "vue-router": "^4.1.6"
   },

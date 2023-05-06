@@ -32,9 +32,7 @@ router.post(
     try {
       const bodyValue = await request.body().value;
       const { key, value } = bodyValue;
-      // const result = await addEntry(key, value);
       const result = await updateEntry(key, value);
-
       response.status = 200;
       if (result.isSuccess) {
         response.body = {
@@ -61,9 +59,6 @@ router.get(
   "/user-details",
   async ({ request, response }: { request: any; response: any }) => {
     try {
-      // const key = "harshstudy599";
-      // const {key, value} = request.body;
-      console.log(request.url);
       const params = new URLSearchParams(request.url.search);
       const key = params.get("key") || "";
       const data = await getEntry(key);
@@ -122,13 +117,10 @@ router.put(
 router.delete(
   "/delete-user-details",
   async ({ request, response }: { request: any; response: any }) => {
-    console.log("Inside user details");
     try {
       console.log(request.url);
       const params = new URLSearchParams(request.url.search);
       const key = params.get("key") || "";
-      console.log("Delete key", key);
-      // const {key} = bodyValue;
       const result = await deleteEntry(key);
       response.status = 200;
       if (result.isSuccess) {
