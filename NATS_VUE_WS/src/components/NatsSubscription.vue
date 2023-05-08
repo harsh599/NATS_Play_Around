@@ -84,12 +84,10 @@ const filterChange = async (filterParam: string) => {
   ;(async () => {
     for await (const e of watch) {
       watch.value = []
-      console.log('VALUE', e)
-      console.log(sc.decode(e.value))
       if (e.value && e.operation != 'DEL' && e.operation != 'PURGE') {
         const decodeResult = User.decode(pb.Reader.create(e.value))
         watchValue.value.push(decodeResult)
-        console.log(`watch: ${e.key}: ${e.operation} ${e.value ? sc.decode(e.value) : ''}`)
+        console.log(e)
       }
     }
   })().then()
@@ -120,6 +118,7 @@ const requestReply = async () => {
   reqReplySub.value = nc.value.subscribe('time')
   ;(async () => {
     for await (const m of reqReplySub.value) {
+      console.log(m)
       m.respond(m.data)
       // console.log(`[${reqReplySub.value.getProcessed()}]: ${sc.decode(m.data)}`);
     }

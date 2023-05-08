@@ -22,9 +22,16 @@ const onformSubmit = async (userDetail: IUserDetail) => {
   let key = userDetail.choice
   key = key + '.' + userDetail.firstName
   const value = userDetail
-  await user_service.submitUserDetail(key, value)
-  // await user_service.updateUserDetail(key,value);
-  // await user_service.deleteUserDetail(key);
+  try {
+    await user_service.submitUserDetail(key, value)
+    // await user_service.updateUserDetail(key,value);
+    // await user_service.deleteUserDetail(key);
+  } catch (e) {
+    console.log(e)
+  } finally {
+    console.log('Finally Block')
+  }
+
   console.log(value)
 }
 </script>

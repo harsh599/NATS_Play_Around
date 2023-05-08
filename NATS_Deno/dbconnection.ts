@@ -38,8 +38,9 @@ export const getEntry = async (key: string) => {
     let val = await kv.get(rootKey + key);
     let myValue = null;
     if (val !== null) {
-      myValue = await new TextDecoder().decode(val.value);
-      myValue = JSON.parse(myValue);
+      // myValue = await new TextDecoder().decode(val.value);
+      // myValue = JSON.parse(myValue);
+      myValue = User.decode(pb.Reader.create(val.value));
     }
     return { isSuccess: true, data: myValue };
   } catch (e) {
